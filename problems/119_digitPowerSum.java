@@ -10,7 +10,7 @@ import java.text.*;
 import java.math.*;
 import java.util.regex.*;
 
-public class digitPowerSum {
+public class 119_digitPowerSum {
 
     public static void main(String[] args) {
         
