@@ -161,6 +161,31 @@ def checkIfTableFull(rlist):
 			return False
 	return True
 
+def getXPosGrid(r,c,itr):
+	if itr < 50 or itr >= 100:
+		return c/3 + 3*(r/3)
+	else:
+		return r/3 + 3*(c/3)
+
+def getYPosGrid(r,c,itr):
+	if itr < 50 or itr >= 100:
+		return c%3 + 3*(r%3)
+	else:
+		return r%3 + 3*(c%3)
+
+def getXPosCol(r,c,itr):
+	if itr < 100 :
+		return c
+	else:
+		return c%3 + 3*(r%3)
+
+def getYPosCol(r,c,itr):
+	if itr < 100 :
+		return r
+	else:
+		return c/3 + 3*(r/3)
+
+
 def playGame(game):
 
 	(rlist, clist, glist) = createTable(game)
@@ -168,15 +193,46 @@ def playGame(game):
 	drawTable(rlist)
 	allValues = [i for i in range(1,10)]
 	iteration = 0
+	numScan = 0
 
 	while checkIfTableFull(rlist) is False:
 
-		#make sure you're not caught in an infinite loop if algorithm fails
 		iteration += 1
+		
+		#switch to column
 		if iteration == 50:
+			print 'Switching to column scan'
+			temp = clist
+			clist = rlist
+			rlist = temp
+
+		#switch to grid
+		elif iteration == 100:
+			print 'Switching to grid scan'
+			temp = clist
+			clist = rlist
+			rlist = glist
+			glist = temp
+
+		elif iteration == 150:
+			print 'Switching back to row scan'
+			iteration = 0
+			numScan += 1
+			temp = glist
+			glist = rlist
+			rlist = temp
+
+		#make sure you're not caught in an infinite loop if algorithm fails
+		if numScan == 10:
 			print 'Couldnt solve game. The unsolved grid is:'
-			drawTable(rlist)
+			if iteration < 50:
+				drawTable(rlist)
+			elif iteration >= 50 and iteration < 100:
+				drawTable(clist)
+			else:
+				drawTable(glist)
 			return False
+
 
 		#scan rows one by one
 		for i in range(9):
@@ -188,8 +244,8 @@ def playGame(game):
 
 				#if cell is empty
 				if rlist[i].getValueFromCell(j) == 0:
-					notPossibleVals = rlist[i].getListOfFilledValues() + clist[j].getListOfFilledValues() + \
-					glist[(j/3 + 3*(i/3))].getListOfFilledValues()
+					notPossibleVals = rlist[i].getListOfFilledValues() + clist[getXPosCol(i,j,iteration)].getListOfFilledValues() + \
+					glist[getXPosGrid(i,j,iteration)].getListOfFilledValues()
 					possibleVals = list(set(allValues) - set(notPossibleVals))
 
 
@@ -197,8 +253,8 @@ def playGame(game):
 					if len(possibleVals) == 1:
 						#print 'Assigning value', possibleVals[0], 'to',rlist[i].getID(),'position',j
 						rlist[i].assignValueToCell(possibleVals[0], j)
-						clist[j].assignValueToCell(possibleVals[0], i)						
-						glist[(j/3 + 3*(i/3))].assignValueToCell(possibleVals[0], (j%3 + 3*(i%3)))
+						clist[getXPosCol(i,j,iteration)].assignValueToCell(possibleVals[0], getYPosCol(i,j,iteration))						
+						glist[getXPosGrid(i,j,iteration)].assignValueToCell(possibleVals[0], getYPosGrid(i,j,iteration))
 						
 						#must remove assigned value from corresponding predicted value
 						for k in range(9):
@@ -241,13 +297,18 @@ def playGame(game):
 						if elem in allElems[key]:
 							#print elem, 'occurs only in', rlist[i].getID(), 'position = ', key
 							rlist[i].assignValueToCell(elem, key)
-							clist[key].assignValueToCell(elem, i)
-							glist[(key/3 + 3*(i/3))].assignValueToCell(elem, (key%3 + 3*(i%3)))
+							clist[getXPosCol(i,key,iteration)].assignValueToCell(elem, getYPosCol(i,key,iteration))
+							glist[getXPosGrid(i,key,iteration)].assignValueToCell(elem, getYPosGrid(i,key,iteration))
 
 								
 
-	print 'The solved Sudoku grid is:'					
-	drawTable(rlist)
+	print 'The solved Sudoku grid is:'	
+	if iteration < 50:				
+		drawTable(rlist)
+	elif iteration < 100:
+		drawTable(clist)
+	else:
+		drawTable(glist)
 	return True
 
 
@@ -268,6 +329,7 @@ for line in fh:
 	else:
 		game.append(line.rstrip())
 
+#playGame(gamelist[5])
 gamesWon = 0
 gamesPlayed = 0
 for game in gamelist:
