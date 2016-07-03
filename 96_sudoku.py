@@ -71,11 +71,6 @@ class RCG():
 				return False		
 		return True
 
-	def checkIfAllPredicted(self):
-		for item in self.listcell:
-			if len(item.getPossibleValues()) == 0:
-				return False
-		return True
 
 	def getListOfFilledValues(self):
 		values = []
@@ -83,13 +78,6 @@ class RCG():
 			if item.getValue() != 0:
 				values.append(item.getValue())
 		return values
-
-	def NumCellsFilled(self):
-		count = 0
-		for item in self.listcell:
-			if item.value != 0:
-				count += 1
-		return count
 
 
 
@@ -173,31 +161,6 @@ def checkIfTableFull(rlist):
 			return False
 	return True
 
-
-def getCorrespondingGrid(r,c):
-	if r >= 0 and r < 3:
-		if c >= 0 and c < 3:
-			return 0
-		elif c >= 3 and c < 6:
-			return 1
-		else:
-			return 2
-	elif r >= 3 and r < 6:
-		if c >= 0 and c < 3:
-			return 3
-		elif c >= 3 and c < 6:
-			return 4
-		else:
-			return 5
-	else:
-		if c >= 0 and c < 3:
-			return 6
-		elif c >= 3 and c < 6:
-			return 7
-		else:
-			return 8
-
-
 def playGame(game):
 
 	(rlist, clist, glist) = createTable(game)
@@ -220,30 +183,22 @@ def playGame(game):
 			if rlist[i].checkIfFull is True:
 					continue
 
-			#otherwise, update predicted values for all cells in row
+			#update predicted values for all cells in row
 			for j in range(9):
 
 				#if cell is empty
 				if rlist[i].getValueFromCell(j) == 0:
 					notPossibleVals = rlist[i].getListOfFilledValues() + clist[j].getListOfFilledValues() + \
-					glist[getCorrespondingGrid(i,j)].getListOfFilledValues()
+					glist[(j/3 + 3*(i/3))].getListOfFilledValues()
 					possibleVals = list(set(allValues) - set(notPossibleVals))
 
-					#elements not in alreadyPredicted but present in possibleVals should be 
-					#removed from possibleVals
-					if len(rlist[i].getPredictedValuesFromCell(j)) > 0:
-						alreadyPredicted = rlist[i].getPredictedValuesFromCell(j)
-						remove =  set(possibleVals) - set(alreadyPredicted)
-						for item in remove:
-							possibleVals.remove(item)	
-					#print rlist[i].getID(), j, '-', possibleVals
 
 					#if only one value in possibleVals, assign it to cell
 					if len(possibleVals) == 1:
 						#print 'Assigning value', possibleVals[0], 'to',rlist[i].getID(),'position',j
 						rlist[i].assignValueToCell(possibleVals[0], j)
 						clist[j].assignValueToCell(possibleVals[0], i)						
-						glist[getCorrespondingGrid(i,j)].assignValueToCell(possibleVals[0], (j%3 + 3*(i%3)))
+						glist[(j/3 + 3*(i/3))].assignValueToCell(possibleVals[0], (j%3 + 3*(i%3)))
 						
 						#must remove assigned value from corresponding predicted value
 						for k in range(9):
@@ -285,10 +240,9 @@ def playGame(game):
 					for key in allElems:		
 						if elem in allElems[key]:
 							#print elem, 'occurs only in', rlist[i].getID(), 'position = ', key
-							#print 'Assigning value', elem, 'to',rlist[i].getID(),'position',key
 							rlist[i].assignValueToCell(elem, key)
 							clist[key].assignValueToCell(elem, i)
-							glist[getCorrespondingGrid(i, key)].assignValueToCell(elem, (key%3 + 3*(i%3)))
+							glist[(key/3 + 3*(i/3))].assignValueToCell(elem, (key%3 + 3*(i%3)))
 
 								
 
@@ -323,7 +277,7 @@ for game in gamelist:
 	if res is True:
 		gamesWon += 1
 
-print gamesWon,'/50 games won.',
+print gamesWon,'/ 50 games won.',
 
 
 
